@@ -1,4 +1,4 @@
-use seed::{prelude::*, *};
+use seed::{*, prelude::*};
 
 pub mod page;
 
@@ -21,9 +21,14 @@ enum Msg {
     HomeMessage(page::home::Msg),
 }
 
-fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
+#[allow(irrefutable_let_patterns)]
+fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
-        Msg::HomeMessage(_) => model,
+        Msg::HomeMessage(home_msg) => {
+            if let Model::Home(home_model) = model {
+                page::home::update(home_msg, home_model, &mut orders.proxy(Msg::HomeMessage));
+            }
+        }
     };
 }
 
