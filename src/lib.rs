@@ -1,46 +1,43 @@
-use seed::{*, prelude::*};
+use seed::{prelude::*, *};
 
+pub mod page;
 
 // Model
 
-struct Model {
-    pub val: i32,
+enum Model {
+    Home(page::home::Model),
 }
 
 impl Default for Model {
     fn default() -> Self {
-        Self {
-            val: 0,
-        }
+        Model::Home(Default::default())
     }
 }
-
 
 // Update
 
 #[derive(Clone)]
 enum Msg {
-    Increment,
+    HomeMessage(page::home::Msg),
 }
 
 fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
-        Msg::Increment => model.val += 1,
-    }
+        Msg::HomeMessage(_) => model,
+    };
 }
-
 
 // View
 
 fn view(model: &Model) -> impl View<Msg> {
-    button![
-        simple_ev(Ev::Click, Msg::Increment),
-        format!("Hello, World × {}", model.val)
-    ]
+    match model {
+        Model::Home(home_model) => page::Page::Home
+            .view(page::home::view(home_model))
+            .map_message(Msg::HomeMessage),
+    }
 }
 
 #[wasm_bindgen(start)]
 pub fn render() {
-    App::builder(update, view)
-        .build_and_start();
+    App::builder(update, view).build_and_start();
 }
