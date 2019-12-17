@@ -1,6 +1,6 @@
 use seed::prelude::*;
 
-pub mod home;
+pub mod homepage;
 
 pub struct ViewPage<Ms: 'static> {
     title_prefix: String,
