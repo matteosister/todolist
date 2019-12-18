@@ -2,14 +2,16 @@ use seed::{*, prelude::*};
 
 use crate::page::ViewPage;
 
+// Model
+#[derive(Debug)]
 pub struct Model {
     pub title: String,
     count: i32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Msg {
-    Increment
+    Increment,
 }
 
 impl Default for Model {
@@ -26,14 +28,15 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
         Msg::Increment => model.count += 1,
     }
 }
-// View
 
+// View
 pub fn view(model: &Model) -> ViewPage<Msg> {
     ViewPage::new(model.title.clone(), view_content(model))
 }
 
 fn view_content(model: &Model) -> Node<Msg> {
-    div![class!["home-page"],
+    div![
+        class!["home-page"],
         div!["count: ", model.count.to_string()],
         div![button![simple_ev(Ev::Click, Msg::Increment), "increment"]]
     ]

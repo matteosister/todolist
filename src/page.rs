@@ -1,6 +1,7 @@
 use seed::prelude::*;
 
 pub mod homepage;
+pub mod not_found;
 
 pub struct ViewPage<Ms: 'static> {
     title_prefix: String,
@@ -26,6 +27,7 @@ impl<Ms> ViewPage<Ms> {
 
 pub enum Page {
     Home,
+    NotFound,
 }
 
 impl Page {
