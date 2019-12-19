@@ -10,10 +10,11 @@ pub mod route;
 #[derive(Debug)]
 enum Model {
     Home(homepage::Model),
+    List(list::Model),
     NotFound(not_found::Model),
 }
 
-impl Default for Model {
+impl<'a> Default for Model {
     fn default() -> Self {
         Model::Home(Default::default())
     }
@@ -24,6 +25,7 @@ impl Default for Model {
 #[derive(Clone, Debug)]
 pub enum Msg {
     HomeMessage(homepage::Msg),
+    ListMessage(list::Msg),
     NotFoundMessage(not_found::Msg),
     ChangePage(Route),
 }
@@ -36,6 +38,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 homepage::update(home_msg, home_model, &mut orders.proxy(Msg::HomeMessage));
             }
         }
+        Msg::ListMessage(list_msg) => {
+            if let Model::List(list_model) = model {
+                list::update(list_msg, list_model, &mut orders.proxy(Msg::ListMessage));
+            }
+        }
         Msg::NotFoundMessage(not_found_msg) => {
             if let Model::NotFound(not_found_model) = model {
                 not_found::update(not_found_msg, not_found_model, &mut orders.proxy(Msg::NotFoundMessage));
@@ -44,7 +51,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         Msg::ChangePage(route) => {
             *model = match route {
                 Route::Homepage => Model::Home(Default::default()),
-                Route::List => Model::Home(Default::default()),
+                Route::List => Model::List(Default::default()),
                 Route::NotFound => Model::NotFound(Default::default()),
             };
         }
@@ -58,9 +65,13 @@ fn view(model: &Model) -> impl View<Msg> {
         Model::Home(home_model) => Page::Home
             .view(page::homepage::view(home_model))
             .map_message(Msg::HomeMessage),
+        Model::List(list_model) => Page::List
+            .view(page::list::view(list_model))
+            .map_message(Msg::ListMessage),
         Model::NotFound(not_found_model) => Page::NotFound
             .view(page::not_found::view(not_found_model))
             .map_message(Msg::NotFoundMessage)
+
     }
 }
 

@@ -1,7 +1,8 @@
 use seed::prelude::*;
 
-pub mod homepage;
 pub mod not_found;
+pub mod homepage;
+pub mod list;
 
 pub struct ViewPage<Ms: 'static> {
     title_prefix: String,
@@ -9,9 +10,9 @@ pub struct ViewPage<Ms: 'static> {
 }
 
 impl<Ms> ViewPage<Ms> {
-    pub fn new(title: String, content: Node<Ms>) -> Self {
+    pub fn new(title: &str, content: Node<Ms>) -> Self {
         Self {
-            title_prefix: title,
+            title_prefix: title.to_string(),
             content,
         }
     }
@@ -27,6 +28,7 @@ impl<Ms> ViewPage<Ms> {
 
 pub enum Page {
     Home,
+    List,
     NotFound,
 }
 
