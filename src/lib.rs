@@ -1,4 +1,4 @@
-use seed::{*, prelude::*};
+use seed::{prelude::*, *};
 
 use prelude::*;
 
@@ -14,7 +14,7 @@ enum Model {
     NotFound(not_found::Model),
 }
 
-impl<'a> Default for Model {
+impl Default for Model {
     fn default() -> Self {
         Model::Home(Default::default())
     }
@@ -45,7 +45,11 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
         }
         Msg::NotFoundMessage(not_found_msg) => {
             if let Model::NotFound(not_found_model) = model {
-                not_found::update(not_found_msg, not_found_model, &mut orders.proxy(Msg::NotFoundMessage));
+                not_found::update(
+                    not_found_msg,
+                    not_found_model,
+                    &mut orders.proxy(Msg::NotFoundMessage),
+                );
             }
         }
         Msg::ChangePage(route) => {
@@ -61,7 +65,7 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 // View
 
 fn view(model: &Model) -> impl View<Msg> {
-    match seed::log(model) {
+    match model {
         Model::Home(home_model) => Page::Home
             .view(page::homepage::view(home_model))
             .map_message(Msg::HomeMessage),
@@ -70,8 +74,7 @@ fn view(model: &Model) -> impl View<Msg> {
             .map_message(Msg::ListMessage),
         Model::NotFound(not_found_model) => Page::NotFound
             .view(page::not_found::view(not_found_model))
-            .map_message(Msg::NotFoundMessage)
-
+            .map_message(Msg::NotFoundMessage),
     }
 }
 

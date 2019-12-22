@@ -1,4 +1,4 @@
-use seed::{*, prelude::*};
+use seed::{prelude::*, *};
 
 use crate::page::ViewPage;
 
@@ -12,7 +12,7 @@ pub struct Model {
 #[derive(Clone, Debug)]
 pub enum Msg {
     Increment,
-    Decrement
+    Decrement,
 }
 
 impl Default for Model {
@@ -44,6 +44,6 @@ fn view_content(model: &Model) -> Node<Msg> {
             button![simple_ev(Ev::Click, Msg::Decrement), "decrement"],
             button![simple_ev(Ev::Click, Msg::Increment), "increment"]
         ],
-        a!["List", attrs!{At::Href => "/list"}]
+        a!["List", attrs! {At::Href => "/list"}]
     ]
 }
