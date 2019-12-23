@@ -17,7 +17,7 @@ impl Default for Model {
     fn default() -> Self {
         Self {
             title: "List".to_string(),
-            elements: vec![],
+            elements: vec![Element::new("element one"), Element::new("element two")],
             new_element_label: "".to_string(),
         }
     }
@@ -36,6 +36,20 @@ impl Model {
             .filter(|el| el.id != element_id)
             .collect();
     }
+
+    pub fn toggle_element(&mut self, element_id: Uuid) {
+        self.elements = self
+            .elements
+            .iter()
+            .cloned()
+            .map(|mut el| {
+                if el.id == element_id {
+                    el.toggle();
+                }
+                el
+            })
+            .collect();
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -46,25 +60,31 @@ pub struct Element {
 }
 
 impl Element {
-    pub fn new(label: String) -> Self {
+    pub fn new(label: impl ToString) -> Self {
         Self {
             id: Uuid::new_v4(),
-            label,
+            label: label.to_string(),
             done: false,
         }
+    }
+
+    pub fn toggle(&mut self) {
+        seed::log(&self);
+        self.done = !self.done;
     }
 }
 
 #[derive(Clone, Debug)]
 pub enum Msg {
-    InputNewLabel(String),
+    EditEntry(String),
     KeyPressed(events::Event),
     DeleteElement(Uuid),
+    ToggleElement(Uuid),
 }
 
 pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
     match msg {
-        Msg::InputNewLabel(val) => {
+        Msg::EditEntry(val) => {
             model.new_element_label = val;
         }
         Msg::KeyPressed(ev) => {
@@ -78,6 +98,7 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
         Msg::DeleteElement(element_id) => {
             model.remove_element(element_id);
         }
+        Msg::ToggleElement(element_id) => model.toggle_element(element_id),
     }
 }
 
@@ -93,7 +114,7 @@ fn view_content(model: &Model) -> Node<Msg> {
         h1!["List"],
         input![
             attrs! {At::Value => model.new_element_label},
-            input_ev(Ev::Input, Msg::InputNewLabel),
+            input_ev(Ev::Input, Msg::EditEntry),
             raw_ev(Ev::KeyDown, Msg::KeyPressed),
         ],
         view_list(model)
@@ -113,6 +134,11 @@ fn view_element(el: &Element) -> Node<Msg> {
             attrs! {At::Href => ""},
             simple_ev(Ev::Click, Msg::DeleteElement(el.id)),
             "remove"
+        ],
+        " ",
+        input![
+            attrs! {At::Type => "checkbox", At::Checked => el.done.as_at_value()},
+            simple_ev(Ev::Click, Msg::ToggleElement(el.id))
         ]
     ]
 }
