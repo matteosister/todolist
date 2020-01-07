@@ -1,0 +1,22 @@
+{
+  "name": "todolist",
+  "version": "1.0.0",
+  "description": "seed playground",
+  "main": "js/index.js",
+  "repository": "git@github.com:matteosister/todolist.git",
+  "author": "Matteo Giachino <matteog@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "^1.1.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.10.1"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --config config/webpack.config.js",
+    "build": "webpack --config config/webpack.prod.config.js"
+  }
+}
