@@ -33,9 +33,9 @@ pub enum Page {
 }
 
 impl Page {
-    pub fn view<Ms>(&self, view_page: ViewPage<Ms>) -> Vec<Node<Ms>> {
+    pub fn view<Ms>(&self, view_page: ViewPage<Ms>) -> Node<Ms> {
         seed::document().set_title(&view_page.title());
 
-        vec![view_page.into_content()]
+        view_page.into_content()
     }
 }

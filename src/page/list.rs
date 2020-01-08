@@ -1,7 +1,8 @@
-use seed::{prelude::*, *};
+use seed::{*, prelude::*};
+use uuid::Uuid;
+use web_sys::Event;
 
 use crate::page::ViewPage;
-use uuid::Uuid;
 
 const ENTER: u32 = 13;
 
@@ -77,7 +78,7 @@ impl Element {
 #[derive(Clone, Debug)]
 pub enum Msg {
     EditEntry(String),
-    KeyPressed(events::Event),
+    KeyPressed(Event),
     DeleteElement(Uuid),
     ToggleElement(Uuid),
 }

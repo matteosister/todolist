@@ -1,4 +1,4 @@
-use seed::{prelude::*, *};
+use seed::prelude::*;
 
 use prelude::*;
 
@@ -68,13 +68,13 @@ fn view(model: &Model) -> impl View<Msg> {
     match model {
         Model::Home(home_model) => Page::Home
             .view(page::homepage::view(home_model))
-            .map_message(Msg::HomeMessage),
+            .map_msg(Msg::HomeMessage),
         Model::List(list_model) => Page::List
             .view(page::list::view(list_model))
-            .map_message(Msg::ListMessage),
+            .map_msg(Msg::ListMessage),
         Model::NotFound(not_found_model) => Page::NotFound
             .view(page::not_found::view(not_found_model))
-            .map_message(Msg::NotFoundMessage),
+            .map_msg(Msg::NotFoundMessage),
     }
 }
 
