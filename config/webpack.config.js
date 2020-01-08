@@ -19,11 +19,13 @@ module.exports = {
     ],
     output: {
         path: path.resolve(__dirname, '../dist'),
-        filename: 'todolist.bundle.js'
+        filename: "todolist.bundle.[hash].js",
+        publicPath: "/"
     },
     devServer: {
         contentBase: path.join(__dirname, '../dist'),
         compress: true,
-        port: 8000
+        port: 8000,
+        historyApiFallback: true
     }
 };
