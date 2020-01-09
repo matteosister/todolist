@@ -1,4 +1,4 @@
-use seed::{*, prelude::*};
+use seed::{prelude::*, *};
 use uuid::Uuid;
 use web_sys::Event;
 
@@ -12,6 +12,7 @@ pub struct Model {
     title: String,
     elements: Vec<Element>,
     new_element_label: String,
+    active_filter: Filter,
 }
 
 impl Default for Model {
@@ -20,6 +21,7 @@ impl Default for Model {
             title: "List".to_string(),
             elements: vec![Element::new("element one"), Element::new("element two")],
             new_element_label: "".to_string(),
+            active_filter: Filter::All,
         }
     }
 }
@@ -51,6 +53,32 @@ impl Model {
             })
             .collect();
     }
+
+    fn get_actual_elements(&self) -> Vec<&Element> {
+        self.get_elements(&self.active_filter)
+    }
+
+    fn get_elements(&self, filter: &Filter) -> Vec<&Element> {
+        self.elements
+            .iter()
+            .filter(|element| match filter {
+                Filter::All => true,
+                Filter::Active => !element.done,
+                Filter::Completed => element.done,
+            })
+            .collect()
+    }
+
+    fn count_elements(&self) -> usize {
+        self.get_elements(&Filter::Active).len()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Filter {
+    All,
+    Active,
+    Completed,
 }
 
 #[derive(Debug, Clone)]
@@ -81,6 +109,7 @@ pub enum Msg {
     KeyPressed(Event),
     DeleteElement(Uuid),
     ToggleElement(Uuid),
+    ChangeFilter(Filter),
 }
 
 pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
@@ -100,6 +129,9 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             model.remove_element(element_id);
         }
         Msg::ToggleElement(element_id) => model.toggle_element(element_id),
+        Msg::ChangeFilter(filter) => {
+            model.active_filter = filter;
+        }
     }
 }
 
@@ -110,36 +142,84 @@ pub fn view(model: &Model) -> ViewPage<Msg> {
 }
 
 fn view_content(model: &Model) -> Node<Msg> {
-    div![
-        a!["Homepage", attrs! {At::Href => "/"}],
-        h1!["List"],
-        input![
-            attrs! {At::Value => model.new_element_label},
-            input_ev(Ev::Input, Msg::EditEntry),
-            raw_ev(Ev::KeyDown, Msg::KeyPressed),
+    section![
+        class!["todoapp"],
+        //        a!["Homepage", attrs! {At::Href => "/"}],
+        header![
+            h1!["todos"],
+            input![
+                class!["new-todo"],
+                attrs! {At::Value => model.new_element_label, At::Placeholder => "What needs to be done?"},
+                input_ev(Ev::Input, Msg::EditEntry),
+                raw_ev(Ev::KeyDown, Msg::KeyPressed),
+            ]
         ],
-        view_list(model)
+        section![
+            class!["main"],
+            input![
+                class!["toggle-all"],
+                id!["toggle-all"],
+                attrs! {At::Type => "checkbox"},
+            ],
+            label![attrs! {At::For => "toggle-all"}]
+        ],
+        view_list(model),
+        footer(model),
     ]
 }
 
 fn view_list(model: &Model) -> Node<Msg> {
-    ul![model.elements.iter().map(view_element)]
+    ul![
+        class!["todo-list"],
+        model.get_actual_elements().into_iter().map(view_element)
+    ]
 }
 
 fn view_element(el: &Element) -> Node<Msg> {
     li![
         attrs! {At::Id => el.id},
-        el.label,
-        " ",
-        a![
-            attrs! {At::Href => ""},
-            simple_ev(Ev::Click, Msg::DeleteElement(el.id)),
-            "remove"
+        div![
+            class!["view"],
+            input![
+                class!["toggle"],
+                attrs! {At::Type => "checkbox", At::Checked => el.done.as_at_value()},
+                simple_ev(Ev::Click, Msg::ToggleElement(el.id))
+            ],
+            label![el.label],
+            button![
+                class!["destroy"],
+                simple_ev(Ev::Click, Msg::DeleteElement(el.id))
+            ]
+        ]
+    ]
+}
+
+fn footer(model: &Model) -> Node<Msg> {
+    let count = model.count_elements();
+
+    footer![
+        class!["footer"],
+        span![
+            class!["todo-count"],
+            format!("{} item{} left", count, if count == 1 { "" } else { "s" })
         ],
-        " ",
-        input![
-            attrs! {At::Type => "checkbox", At::Checked => el.done.as_at_value()},
-            simple_ev(Ev::Click, Msg::ToggleElement(el.id))
+        ul![
+            class!["filters"],
+            li![a![
+                attrs! {At::Href => ""},
+                simple_ev(Ev::Click, Msg::ChangeFilter(Filter::All)),
+                "All"
+            ]],
+            li![a![
+                attrs! {At::Href => ""},
+                simple_ev(Ev::Click, Msg::ChangeFilter(Filter::Active)),
+                "Active"
+            ]],
+            li![a![
+                attrs! {At::Href => ""},
+                simple_ev(Ev::Click, Msg::ChangeFilter(Filter::Completed)),
+                "Completed"
+            ]]
         ]
     ]
 }

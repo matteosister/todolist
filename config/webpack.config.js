@@ -17,6 +17,19 @@ module.exports = {
             outDir: path.resolve(__dirname, "../dist")
         })
     ],
+    module: {
+        rules: [
+            {
+                test: /\.css$/i,
+                use: ['style-loader', 'css-loader'],
+            },
+        ],
+    },
+    resolve: {
+        alias: {
+            css: path.resolve(__dirname, '../css/'),
+        }
+    },
     output: {
         path: path.resolve(__dirname, '../dist'),
         filename: "todolist.bundle.[hash].js",
