@@ -32,39 +32,19 @@ impl Model {
     }
 
     pub fn remove_element(&mut self, element_id: Uuid) {
-        self.elements = self
-            .elements
-            .iter()
-            .cloned()
-            .filter(|el| el.id != element_id)
-            .collect();
+        self.elements.retain(|el| el.id != element_id)
     }
 
     pub fn remove_completed(&mut self) {
-        self.elements = self
-            .elements
-            .iter()
-            .cloned()
-            .fold(vec![], |mut acc, e| {
-                if !e.done {
-                    acc.push(e.clone());
-                }
-                acc
-            });
+        self.elements.retain(|el| !el.done)
     }
 
     pub fn toggle_element(&mut self, element_id: Uuid) {
-        self.elements = self
-            .elements
-            .iter()
-            .cloned()
-            .map(|mut el| {
-                if el.id == element_id {
-                    el.toggle();
-                }
-                el
-            })
-            .collect();
+        for el in self.elements.iter_mut() {
+            if el.id == element_id {
+                el.toggle();
+            }
+        }
     }
 
     fn get_actual_elements(&self) -> Vec<&Element> {
