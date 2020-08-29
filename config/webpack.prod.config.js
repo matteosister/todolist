@@ -33,6 +33,6 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, '../dist'),
         filename: 'todolist.bundle.js',
-        publicPath: "/"
+        publicPath: "/todolist"
     }
 };
