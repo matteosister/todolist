@@ -1,6 +1,6 @@
 use seed::{prelude::*, *};
 use uuid::Uuid;
-use web_sys::Event;
+use web_sys::{Event, KeyboardEvent};
 
 use crate::page::ViewPage;
 
@@ -40,6 +40,19 @@ impl Model {
             .collect();
     }
 
+    pub fn remove_completed(&mut self) {
+        self.elements = self
+            .elements
+            .iter()
+            .cloned()
+            .fold(vec![], |mut acc, e| {
+                if !e.done {
+                    acc.push(e.clone());
+                }
+                acc
+            });
+    }
+
     pub fn toggle_element(&mut self, element_id: Uuid) {
         self.elements = self
             .elements
@@ -71,6 +84,10 @@ impl Model {
 
     fn count_elements(&self) -> usize {
         self.get_elements(&Filter::Active).len()
+    }
+
+    fn has_completed_tasks(&self) -> bool {
+        self.elements.iter().any(|el| el.done)
     }
 }
 
@@ -110,6 +127,7 @@ pub enum Msg {
     DeleteElement(Uuid),
     ToggleElement(Uuid),
     ChangeFilter(Filter),
+    RemoveCompleted,
 }
 
 pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
@@ -118,7 +136,7 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
             model.new_element_label = val;
         }
         Msg::KeyPressed(ev) => {
-            let code = seed::to_kbevent(&ev).key_code();
+            let code = ev.unchecked_into::<KeyboardEvent>().key_code();
             if code == ENTER {
                 let element = Element::new(model.new_element_label.clone());
                 model.add_element(element);
@@ -132,6 +150,7 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
         Msg::ChangeFilter(filter) => {
             model.active_filter = filter;
         }
+        Msg::RemoveCompleted => model.remove_completed()
     }
 }
 
@@ -151,7 +170,7 @@ fn view_content(model: &Model) -> Node<Msg> {
                 class!["new-todo"],
                 attrs! {At::Value => model.new_element_label, At::Placeholder => "What needs to be done?"},
                 input_ev(Ev::Input, Msg::EditEntry),
-                raw_ev(Ev::KeyDown, Msg::KeyPressed),
+                ev(Ev::KeyDown, Msg::KeyPressed),
             ]
         ],
         section![
@@ -177,7 +196,7 @@ fn view_list(model: &Model) -> Node<Msg> {
 
 fn view_element(el: &Element) -> Node<Msg> {
     li![
-        attrs! {At::Id => el.id},
+        attrs! {At::Id => el.id, At::Class => if el.done { "completed" } else {""}},
         div![
             class!["view"],
             input![
@@ -185,7 +204,7 @@ fn view_element(el: &Element) -> Node<Msg> {
                 attrs! {At::Type => "checkbox", At::Checked => el.done.as_at_value()},
                 simple_ev(Ev::Click, Msg::ToggleElement(el.id))
             ],
-            label![el.label],
+            label![el.label.as_str()],
             button![
                 class!["destroy"],
                 simple_ev(Ev::Click, Msg::DeleteElement(el.id))
@@ -220,6 +239,11 @@ fn footer(model: &Model) -> Node<Msg> {
                 simple_ev(Ev::Click, Msg::ChangeFilter(Filter::Completed)),
                 "Completed"
             ]]
-        ]
+        ],
+        if model.has_completed_tasks() {
+            button![class!["clear-completed"], simple_ev(Ev::Click, Msg::RemoveCompleted), "Clear completed"]
+        } else {
+            div![]
+        }
     ]
 }
