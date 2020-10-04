@@ -10,6 +10,7 @@ pub enum Route {
 }
 
 pub fn routes(url: Url) -> Option<Msg> {
+    seed::log(url.path());
     if url.path().eq(&["".to_string()]) {
         return Some(Msg::ChangePage(Route::Homepage));
     }
