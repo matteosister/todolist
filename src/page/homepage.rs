@@ -1,4 +1,4 @@
-use seed::{prelude::*, *};
+use seed::{*, prelude::*};
 
 use crate::page::ViewPage;
 
@@ -6,30 +6,20 @@ use crate::page::ViewPage;
 #[derive(Debug)]
 pub struct Model {
     title: String,
-    count: i32,
 }
 
 #[derive(Clone, Debug)]
-pub enum Msg {
-    Increment,
-    Decrement,
-}
+pub enum Msg {}
 
 impl Default for Model {
     fn default() -> Self {
         Self {
             title: "Homepage".into(),
-            count: 0,
         }
     }
 }
 
-pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
-    match msg {
-        Msg::Increment => model.count += 1,
-        Msg::Decrement => model.count -= 1,
-    }
-}
+pub fn update(_msg: Msg, _model: &mut Model, _: &mut impl Orders<Msg>) {}
 
 // View
 pub fn view(model: &Model) -> ViewPage<Msg> {
@@ -37,13 +27,5 @@ pub fn view(model: &Model) -> ViewPage<Msg> {
 }
 
 fn view_content(model: &Model) -> Node<Msg> {
-    div![
-        class!["home-page"],
-        div!["count: ", model.count.to_string()],
-        div![
-            button![simple_ev(Ev::Click, Msg::Decrement), "decrement"],
-            button![simple_ev(Ev::Click, Msg::Increment), "increment"]
-        ],
-        a!["List", attrs! {At::Href => "/list"}]
-    ]
+    h1!["Homepage"]
 }

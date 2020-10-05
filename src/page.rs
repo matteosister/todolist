@@ -1,5 +1,7 @@
 use seed::prelude::*;
 
+use crate::Msg;
+
 pub mod homepage;
 pub mod list;
 pub mod not_found;
@@ -27,15 +29,37 @@ impl<Ms> ViewPage<Ms> {
 }
 
 pub enum Page {
-    Home,
-    List,
-    NotFound,
+    Home(homepage::Model),
+    List(list::Model),
+    NotFound(not_found::Model),
 }
 
 impl Page {
-    pub fn view<Ms>(&self, view_page: ViewPage<Ms>) -> Node<Ms> {
-        seed::document().set_title(&view_page.title());
+    pub fn init(url: Url) -> Self {
+        match url.path().iter().map(|p| p.as_str()).collect::<Vec<&str>>().as_slice() {
+            [] => Self::Home(Default::default()),
+            ["list"] => Self::List(Default::default()),
+            _ => Self::NotFound(Default::default())
+        }
+    }
 
-        view_page.into_content()
+    pub fn view(&self) -> Node<Msg> {
+        match self {
+            Page::Home(home_model) => {
+                let view_page = homepage::view(home_model);
+                seed::document().set_title(&view_page.title());
+                view_page.into_content().map_msg(Msg::HomeMessage)
+            }
+            Page::List(list_model) => {
+                let view_page = list::view(list_model);
+                seed::document().set_title(&view_page.title());
+                view_page.into_content().map_msg(Msg::ListMessage)
+            }
+            Page::NotFound(not_found_model) => {
+                let view_page = not_found::view(not_found_model);
+                seed::document().set_title(&view_page.title());
+                view_page.into_content().map_msg(Msg::NotFoundMessage)
+            }
+        }
     }
 }

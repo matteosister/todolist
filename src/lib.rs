@@ -1,50 +1,54 @@
-use seed::prelude::*;
+use seed::{*, prelude::*};
 
 use prelude::*;
 
 pub mod page;
 pub mod prelude;
-pub mod route;
 
 // Model
-#[derive(Debug)]
-enum Model {
-    Home(homepage::Model),
-    List(list::Model),
-    NotFound(not_found::Model),
+struct Model {
+    page: Page,
+    base_url: Url,
 }
 
-impl Default for Model {
-    fn default() -> Self {
-        Model::Home(Default::default())
-    }
-}
 
 // Update
 
 #[derive(Clone, Debug)]
 pub enum Msg {
+    UrlChanged(subs::UrlChanged),
     HomeMessage(homepage::Msg),
     ListMessage(list::Msg),
     NotFoundMessage(not_found::Msg),
-    ChangePage(Route),
+}
+
+fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    orders.subscribe(Msg::UrlChanged);
+    seed::log(url.to_base_url());
+    Model {
+        base_url: url.to_base_url(),
+        page: Page::init(url),
+    }
 }
 
 #[allow(irrefutable_let_patterns)]
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
-    match seed::log(msg) {
+    match msg {
+        Msg::UrlChanged(url) => {
+            model.page = Page::init(url.0);
+        }
         Msg::HomeMessage(home_msg) => {
-            if let Model::Home(home_model) = model {
+            if let Page::Home(home_model) = &mut model.page {
                 homepage::update(home_msg, home_model, &mut orders.proxy(Msg::HomeMessage));
             }
         }
         Msg::ListMessage(list_msg) => {
-            if let Model::List(list_model) = model {
+            if let Page::List(list_model) = &mut model.page {
                 list::update(list_msg, list_model, &mut orders.proxy(Msg::ListMessage));
             }
         }
         Msg::NotFoundMessage(not_found_msg) => {
-            if let Model::NotFound(not_found_model) = model {
+            if let Page::NotFound(not_found_model) = &mut model.page {
                 not_found::update(
                     not_found_msg,
                     not_found_model,
@@ -52,35 +56,27 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 );
             }
         }
-        Msg::ChangePage(route) => {
-            *model = match route {
-                Route::Homepage => Model::Home(Default::default()),
-                Route::List => Model::List(Default::default()),
-                Route::NotFound => Model::NotFound(Default::default()),
-            };
-        }
     };
 }
 
 // View
 
 fn view(model: &Model) -> impl IntoNodes<Msg> {
-    match model {
-        Model::Home(home_model) => Page::Home
-            .view(page::homepage::view(home_model))
-            .map_msg(Msg::HomeMessage),
-        Model::List(list_model) => Page::List
-            .view(page::list::view(list_model))
-            .map_msg(Msg::ListMessage),
-        Model::NotFound(not_found_model) => Page::NotFound
-            .view(page::not_found::view(not_found_model))
-            .map_msg(Msg::NotFoundMessage),
-    }
+    div![
+        nav![
+            ul![
+                li![a!["Homepage", attrs! {At::Href => "/"}]],
+                li![a!["List", attrs! {At::Href => "/list"}]]
+            ]
+        ],
+        model.page.view()
+    ]
 }
+
 
 #[wasm_bindgen(start)]
 pub fn render() {
-    App::builder(update, view)
-        .routes(self::route::routes)
-        .build_and_start();
+    //App::builder(update, view).build();
+
+    App::start("app", init, update, view);
 }
