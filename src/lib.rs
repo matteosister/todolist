@@ -23,6 +23,7 @@ pub enum Msg {
 }
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
+    seed::log(&url);
     orders.subscribe(Msg::UrlChanged);
     seed::log(url.to_base_url());
     Model {

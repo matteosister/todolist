@@ -26,6 +26,6 @@ pub fn view(model: &Model) -> ViewPage<Msg> {
     ViewPage::new(model.title.as_str(), view_content(model))
 }
 
-fn view_content(model: &Model) -> Node<Msg> {
+fn view_content(_model: &Model) -> Node<Msg> {
     h1!["Homepage"]
 }
