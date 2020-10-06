@@ -5,6 +5,7 @@ use crate::Msg;
 pub mod homepage;
 pub mod list;
 pub mod not_found;
+pub mod sw_api;
 
 pub struct ViewPage<Ms: 'static> {
     title_prefix: String,
@@ -31,15 +32,23 @@ impl<Ms> ViewPage<Ms> {
 pub enum Page {
     Home(homepage::Model),
     List(list::Model),
+    SwApi(sw_api::Model),
     NotFound(not_found::Model),
 }
 
 impl Page {
     pub fn init(url: Url) -> Self {
-        match url.path().iter().map(|p| p.as_str()).collect::<Vec<&str>>().as_slice() {
+        match url
+            .path()
+            .iter()
+            .map(|p| p.as_str())
+            .collect::<Vec<&str>>()
+            .as_slice()
+        {
             [] => Self::Home(Default::default()),
             ["list"] => Self::List(Default::default()),
-            _ => Self::NotFound(Default::default())
+            ["swapi"] => Self::SwApi(Default::default()),
+            _ => Self::NotFound(Default::default()),
         }
     }
 
@@ -59,6 +68,11 @@ impl Page {
                 let view_page = not_found::view(not_found_model);
                 seed::document().set_title(&view_page.title());
                 view_page.into_content().map_msg(Msg::NotFoundMessage)
+            }
+            Page::SwApi(sw_api_model) => {
+                let view_page = sw_api::view(sw_api_model);
+                seed::document().set_title(&view_page.title());
+                view_page.into_content().map_msg(Msg::SwApiMessage)
             }
         }
     }

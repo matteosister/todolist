@@ -130,7 +130,7 @@ pub fn update(msg: Msg, model: &mut Model, _: &mut impl Orders<Msg>) {
         Msg::ChangeFilter(filter) => {
             model.active_filter = filter;
         }
-        Msg::RemoveCompleted => model.remove_completed()
+        Msg::RemoveCompleted => model.remove_completed(),
     }
 }
 
@@ -221,7 +221,11 @@ fn footer(model: &Model) -> Node<Msg> {
             ]]
         ],
         if model.has_completed_tasks() {
-            button![class!["clear-completed"], simple_ev(Ev::Click, Msg::RemoveCompleted), "Clear completed"]
+            button![
+                class!["clear-completed"],
+                simple_ev(Ev::Click, Msg::RemoveCompleted),
+                "Clear completed"
+            ]
         } else {
             div![]
         }

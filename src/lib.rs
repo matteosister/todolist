@@ -1,7 +1,8 @@
-use seed::{*, prelude::*};
+use seed::{prelude::*, *};
 
 use prelude::*;
 
+pub mod bridge;
 pub mod page;
 pub mod prelude;
 
@@ -11,21 +12,19 @@ struct Model {
     base_url: Url,
 }
 
-
 // Update
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum Msg {
     UrlChanged(subs::UrlChanged),
     HomeMessage(homepage::Msg),
     ListMessage(list::Msg),
     NotFoundMessage(not_found::Msg),
+    SwApiMessage(sw_api::Msg),
 }
 
 fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
-    seed::log(&url);
     orders.subscribe(Msg::UrlChanged);
-    seed::log(url.to_base_url());
     Model {
         base_url: url.to_base_url(),
         page: Page::init(url),
@@ -57,6 +56,15 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
                 );
             }
         }
+        Msg::SwApiMessage(sw_api_msg) => {
+            if let Page::SwApi(sw_api_model) = &mut model.page {
+                sw_api::update(
+                    sw_api_msg,
+                    sw_api_model,
+                    &mut orders.proxy(Msg::SwApiMessage),
+                );
+            }
+        }
     };
 }
 
@@ -64,20 +72,16 @@ fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
 
 fn view(model: &Model) -> impl IntoNodes<Msg> {
     div![
-        nav![
-            ul![
-                li![a!["Homepage", attrs! {At::Href => "/"}]],
-                li![a!["List", attrs! {At::Href => "/list"}]]
-            ]
-        ],
+        nav![ul![
+            li![a!["Homepage", attrs! {At::Href => "/"}]],
+            li![a!["List", attrs! {At::Href => "/list"}]],
+            li![a!["Star Wars Api", attrs! {At::Href => "/swapi"}]]
+        ]],
         model.page.view()
     ]
 }
 
-
 #[wasm_bindgen(start)]
 pub fn render() {
-    //App::builder(update, view).build();
-
     App::start("app", init, update, view);
 }
