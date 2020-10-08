@@ -3,17 +3,10 @@ use serde::Deserialize;
 
 use crate::prelude::*;
 
-const URL: &str = "https://swapi-graphql.netlify.app/.netlify/functions/index";
-
 #[derive(Debug)]
 pub enum Msg {
     LoadFilms,
-    FetchedFilms(fetch::Result<GqlResponse>),
-}
-
-#[derive(Deserialize, Clone, Debug)]
-pub struct GqlResponse {
-    data: AllFilmResponse,
+    FetchedFilms(fetch::Result<AllFilmResponse>),
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -32,14 +25,9 @@ struct FilmNode {
     node: Film,
 }
 
-#[derive(Deserialize, Clone, Debug)]
-struct Film {
-    title: String,
-}
-
 pub struct Model {
     title: String,
-    results: Option<fetch::Result<GqlResponse>>,
+    results: Option<fetch::Result<AllFilmResponse>>,
 }
 
 impl Default for Model {
@@ -54,23 +42,12 @@ impl Default for Model {
 pub fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
     match msg {
         Msg::LoadFilms => {
-            orders.skip().perform_cmd({
-                async { Msg::FetchedFilms(send_message(all_films_query().unwrap()).await) }
-            });
+            orders
+                .skip()
+                .perform_cmd(grapqhl_request(all_films_query()).map(Msg::FetchedFilms));
         }
         Msg::FetchedFilms(result) => model.results = Some(result),
     }
-}
-
-async fn send_message(body: serde_json::Value) -> fetch::Result<GqlResponse> {
-    Request::new(URL)
-        .method(Method::Post)
-        .json(&body)?
-        .fetch()
-        .await?
-        .check_status()?
-        .json()
-        .await
 }
 
 pub fn view(model: &Model) -> ViewPage<Msg> {
@@ -81,17 +58,20 @@ fn view_content(model: &Model) -> Node<Msg> {
     section![
         h1!["Star Wars API"],
         div![button!["Load Films", ev(Ev::Click, |_| Msg::LoadFilms)]],
-        model.results.as_ref().map_or(div!["cazzo"], view_results)
+        model
+            .results
+            .as_ref()
+            .map_or(div!["chiamata api non ancora effettuata"], view_results)
     ]
 }
 
-fn view_results(results: &fetch::Result<GqlResponse>) -> Node<Msg> {
+fn view_results(results: &fetch::Result<AllFilmResponse>) -> Node<Msg> {
     match results {
-        Ok(results) => div![results.data.all_films.edges.iter().map(view_film)],
+        Ok(results) => div![results.all_films.edges.iter().map(view_film)],
         _ => div!["errore!"],
     }
 }
 
 fn view_film(film_node: &FilmNode) -> Node<Msg> {
-    div![h2![film_node.node.title.clone()]]
+    div![h2![film_node.node.title()]]
 }

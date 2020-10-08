@@ -3,6 +3,7 @@ use seed::{prelude::*, *};
 use prelude::*;
 
 pub mod bridge;
+pub mod model;
 pub mod page;
 pub mod prelude;
 
@@ -33,7 +34,7 @@ fn init(url: Url, orders: &mut impl Orders<Msg>) -> Model {
 
 #[allow(irrefutable_let_patterns)]
 fn update(msg: Msg, model: &mut Model, orders: &mut impl Orders<Msg>) {
-    match msg {
+    match seed::log(msg) {
         Msg::UrlChanged(url) => {
             model.page = Page::init(url.0);
         }
